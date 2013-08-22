@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Stock List Program</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script type="text/javascript">
+            //NOTE TO IE USERS. YOU NEED TO OPEN THE DEVELOPER TOOLS ON THIS PAGE TO MAKE IT WORK
+            //DEVELOPER TOOLS DELAY THE PAGE. 
+            //add TSX stock here
+            var tsxStock = new Array(
+                    "PLT.UN", "STB", "T", "G", "CGG", "RMX", "BB",
+                    "WIN", "ATA", "PGF", "ZRE", "ZWB", "POT", "YRI",
+                    "RY", "TD", "BTO", "CP", "MFC", "BBD.B", "VRX"
+                    );
+            //add TSV stock here
+            var tsvStock = new Array(
+                    "NOT"
+                    );
+            var results = [], tsvResults = [], deferredAjaxListTSX = [], deferredAjaxListTSV = [];
+            var lastCheckTime = "";
+            var baseUrl = "http://finance.google.com/finance/info?client=ig&q=";
+            getStockPrices();
+            drawStocks();
+            var refreshPage = setTimeout(function() {
+                location = '';
+            }, 540000);//refresh every 9 minutes 540000
+            /**
+             * Used to slow down ajax calls. Especially in IE
+             */
+            function delayAjax() {
+                for (var i = 0; i < 1200; i++) {
+                }
+            }
+            /**
+             * This sorts the stocks from biggest gains to smallest
+             * @returns integer
+             */
+            function cmp(a, b) {
+                var aChange = parseFloat(a['c']);
+                var bChange = parseFloat(b['c']);
+                if (aChange < bChange) {
+                    return 1;
+                }
+                if (aChange > bChange) {
+                    return -1;
+                }
+                return 0;
+            }
+            /**
+             * Retrieves the Stock prices from google
+             * @returns {undefined}
+             */
+            function getStockPrices() {
+                for (var i = 0; i < tsxStock.length; i++) {
+                    setInterval('delayAjax()', 2000);
+                    deferredAjaxListTSX.push($.ajax({
+                        type: 'GET',
+                        url: baseUrl + "TSE:" + tsxStock[i] + '&callback=?',
+                        async: false,
+                        cache: 'false',
+                        contentType: "application/json",
+                        dataType: 'jsonp',
+                        success: function(json) {
+                            results.push(json[0]);
+                            return json;
+                        },
+                        complete: function() {
+                            return 1;
+                        },
+                        error: function(e) {
+                            console.log(e.message);
+                            return 2;
+                        }
+                    }));
+                }
+
+                for (var i = 0; i < tsvStock.length; i++) {
+                    setInterval('delayAjax()', 2000);
+                    deferredAjaxListTSV.push($.ajax({
+                        type: 'GET',
+                        url: baseUrl + "TSV:" + tsvStock[i] + '&callback=?',
+                        async: false,
+                        cache: 'false',
+                        contentType: "application/json",
+                        dataType: 'jsonp',
+                        success: function(json) {
+                            tsvResults.push(json[0]);
+                            return json;
+                        },
+                        complete: function() {
+                            return 1;
+                        },
+                        error: function(e) {
+                            console.log(e.message);
+                            return 2;
+                        }
+                    }));
+                }
+            }
+            /**
+             * Once All ajax calls are done, need to draw the stocks on the page
+             */
+            function drawStocks() {
+                $.when.apply(null, deferredAjaxListTSX).done(function() {
+                    results.sort(cmp);
+                    lastCheckTime = results[0]['ltt'];
+                    var change = 0;
+                    var content = '';
+                    $('#lastchecktime').html("Last Update Time " + lastCheckTime);
+                    for (var i = 0; i < results.length; i++) {
+                        change = parseFloat(results[i]['c']);
+                        if (change >= 0.00) {
+                            content = "<div class='stock span1 green' stockname='" +
+                                    results[i]['t'] + "'><center>" + results[i]['t'] +
+                                    "<br/>(" + results[i]['c'] + ")<br/>" +
+                                    results[i]['l'] + "</center></div>";
+                            $('#active-one').append(content);
+                        }
+                        if (change < 0) {
+                            content = "<div class='stock span1 red' stockname='" +
+                                    results[i]['t'] + "'><center>" + results[i]['t'] +
+                                    "<br/>(" + results[i]['c'] + ")<br/>" +
+                                    results[i]['l'] + "</center></div>";
+                            $('#lose').append(content);
+                        }
+                    }
+
+                    $(document).ready(function() {
+                        $("div.stock").hover(
+                                function(e) {
+                                    var stockName = $(this).attr('stockname');
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".TO&ql=0";
+                                    showIframe(e);
+                                },
+                                function() {
+                                }
+                        );
+                        $("body").click(function() {
+                            var el = document.getElementById('PopUp');
+                            el.style.display = "none";
+                        });
+
+                    });
+                });
+
+                $.when.apply(null, deferredAjaxListTSV).done(function() {
+                    tsvResults.sort(cmp);
+                    var change = 0;
+                    var content = '';
+                    for (var i = 0; i < tsvResults.length; i++) {
+                        change = parseFloat(tsvResults[i]['c']);
+                        if (change >= 0.00) {
+                            content = "<div class='stock1 span1 green' stockname='" +
+                                    tsvResults[i]['t'] + "'><center>" + tsvResults[i]['t'] +
+                                    "<br/>(" + tsvResults[i]['c'] + ")<br/>" +
+                                    tsvResults[i]['l'] + "</center></div>";
+                            $('#tsv-active').append(content);
+                        }
+                        if (change < 0) {
+                            content = "<div class='stock1 span1 red' stockname='" +
+                                    tsvResults[i]['t'] + "'><center>" + tsvResults[i]['t'] +
+                                    "<br/>(" + tsvResults[i]['c'] + ")<br/>" +
+                                    tsvResults[i]['l'] + "</center></div>";
+                            $('#tsv-lose').append(content);
+                        }
+                    }
+
+                    $(document).ready(function() {
+                        $("div.stock1").hover(
+                                function(e) {
+                                    var stockName = $(this).attr('stockname');
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".V&ql=0";
+                                    showIframe(e);
+                                },
+                                function() {
+                                }
+                        );
+                        $("body").click(function() {
+                            var el = document.getElementById('PopUp');
+                            el.style.display = "none";
+                        });
+
+                    });
+                });
+            }
+            /**
+             * Show Iframe for the stock
+             */
+            function showIframe() {
+                var el, x, y;
+
+                el = document.getElementById('PopUp');
+                if (window.event) {
+                    x = window.event.clientX + document.documentElement.scrollLeft
+                            + document.body.scrollLeft;
+                    y = window.event.clientY + document.documentElement.scrollTop +
+                            +document.body.scrollTop;
+                }
+                else {
+                    x = event.clientX + window.scrollX;
+                    y = event.clientY + window.scrollY;
+                }
+                x += 10;
+                y -= 2;
+                y = y + 30
+                el.style.left = x + "px";
+                el.style.top = y + "px";
+                el.style.display = "block";
+            }
+        </script>
+        <style>
+            .stock, .stock1{
+                border:solid 1px black;
+                float:left;
+                margin:5px 0px;
+            }
+            .green{
+                color:green;
+            }
+            .red{
+                color:red;
+            }            
+            .clear{
+                clear:both;
+            }            
+            [class*="span"]{float:left;min-height:1px;margin-left:20px;}            
+            .span12{width:940px;}
+            .span11{width:860px;}
+            .span10{width:780px;}
+            .span9{width:700px;}
+            .span8{width:620px;}
+            .span7{width:540px;}
+            .span6{width:460px;}
+            .span5{width:380px;}
+            .span4{width:300px;}
+            .span3{width:220px;}
+            .span2{width:140px;}
+            .span1{width:60px;}
+        </style>
+    </head>
+    <body>
+        <div id="lastchecktime" class="span2"></div>
+        <div class="clear"></div>
+        <div  class="span2">TSX</div>
+        <div class="clear"></div>
+        <div id="active-one" class="span8"></div>
+        <div class="clear"></div>        
+        <div id ="lose" class="span8"></div>
+        <div class="clear"></div>
+        <div  class="span2">TSV</div>
+        <div class="clear"></div>
+        <div id="tsv-active" class="span8"></div>
+        <div id="tsv-lose" class="span8"></div>
+        <div id='PopUp' style='display: none; position: absolute; left: 100px; top: 50px; padding: 10px; text-align: justify; font-size: 12px; width: 705px;height:600px;z-index: 9999;background-color: #F5F5F5;' >
+            <iframe id="frame" src="http://www.w3schools.com/" height="595" width="695" frameborder="0" scrolling="auto" marginheight="0"  align="center"></iframe>
+        </div>
+    </body>
+</html>
