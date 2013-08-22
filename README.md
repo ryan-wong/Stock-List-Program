@@ -22,7 +22,7 @@ Versions
 ========
 I have made two version of the stock program.  
 1. The stock analysis is on the right side of page whenever you  
-hover over it.  (stockListRight.html)
+hover over it.  (stockListRight.html)  
 2. The stock analysis will appear close to your cursor whenever you  
 hover over it.  (stockList.html)
 
