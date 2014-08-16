@@ -7,7 +7,7 @@
         <script type="text/javascript">
             //NOTE TO IE USERS. YOU NEED TO OPEN THE DEVELOPER TOOLS ON THIS PAGE TO MAKE IT WORK
             //DEVELOPER TOOLS DELAY THE PAGE. 
-            //add TSX stock here
+            //add TSX stock here dont put too many stocks(like > 20)
             var tsxStock = new Array(
                     "PLT.UN", "STB", "T", "G", "CGG", "RMX", "BB",
                     "WIN", "ATA", "PGF", "ZRE", "ZWB", "POT", "YRI",
@@ -130,7 +130,7 @@
                         $("div.stock").hover(
                                 function(e) {
                                     var stockName = $(this).attr('stockname');
-                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".TO&ql=0";
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName.replace(".","-") + ".TO&ql=0";
                                     showIframe(e);
                                 },
                                 function() {
@@ -170,7 +170,7 @@
                         $("div.stock1").hover(
                                 function(e) {
                                     var stockName = $(this).attr('stockname');
-                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".V&ql=0";
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName.replace(".","-") + ".V&ql=0";
                                     showIframe(e);
                                 },
                                 function() {

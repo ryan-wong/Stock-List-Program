@@ -130,7 +130,7 @@
                         $("div.stock").hover(
                                 function(e) {
                                     var stockName = $(this).attr('stockname');
-                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".TO&ql=0";
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName.replace(".","-") + ".TO&ql=0";
                                     showIframe(e);
                                 },
                                 function() {
@@ -170,7 +170,7 @@
                         $("div.stock1").hover(
                                 function(e) {
                                     var stockName = $(this).attr('stockname');
-                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName + ".V&ql=0";
+                                    document.getElementById('frame').src = "http://ca.finance.yahoo.com/q?s=" + stockName.replace(".","-") + ".V&ql=0";
                                     showIframe(e);
                                 },
                                 function() {
